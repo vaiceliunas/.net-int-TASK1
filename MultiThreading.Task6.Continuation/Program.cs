@@ -74,18 +74,22 @@ namespace MultiThreading.Task6.Continuation
 
             var continuationC = analyzeWeather.ContinueWith((x) =>
             {
+
                 Console.WriteLine("(C)Continues when parent task finished without success");
                 Console.WriteLine("(C) thread ID" + Thread.CurrentThread.ManagedThreadId);
+
                 //now on same thread, but executes all the time. I gave up
-            }, TaskContinuationOptions.ExecuteSynchronously);
+            }, TaskContinuationOptions.OnlyOnFaulted).ConfigureAwait(false);
 
             var continuationD = analyzeWeather.ContinueWith((x) =>
             {
-                Console.WriteLine("(D)Continues when parent task is cancelled");
-            }, TaskContinuationOptions.OnlyOnCanceled).ContinueWith((x) =>
-            {
-                Console.WriteLine("(D)Is current thread in thread pool?" + Thread.CurrentThread.IsThreadPoolThread);
-            }, TaskContinuationOptions.LongRunning);
+                analyzeWeather.ContinueWith((y) =>
+                {
+                    Console.WriteLine("(D)Continues when parent task is cancelled");
+                    Console.WriteLine("(D)Is current thread in thread pool?" + Thread.CurrentThread.IsThreadPoolThread);
+                }, TaskContinuationOptions.LongRunning);
+
+            }, TaskContinuationOptions.OnlyOnCanceled);
 
             Console.ReadLine();
         }
